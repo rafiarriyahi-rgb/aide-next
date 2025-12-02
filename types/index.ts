@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 // User Models
 export interface UserProfile {
   userId: string;

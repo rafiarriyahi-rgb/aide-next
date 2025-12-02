@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 import { auth, db } from '@/lib/firebase/config';
 import { signUpWithEmail, signInWithEmail, signOutUser } from '@/lib/firebase/auth';
 import { UserProfile } from '@/types';
@@ -31,13 +31,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user profile from Firestore
+        // Fetch user profile from RTDB
         try {
-          const userDocRef = doc(db, 'user-data', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
+          const userRef = ref(db, `users/${firebaseUser.uid}`);
+          const userSnapshot = await get(userRef);
 
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
             setUserProfile({
               userId: firebaseUser.uid,
               email: userData.email,

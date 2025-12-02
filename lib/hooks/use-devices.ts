@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, Unsubscribe } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
 import {
   subscribeToUserDevices,
   getDeviceMetadata,
-  addDevice as addDeviceFirestore,
-  updateDevice as updateDeviceFirestore,
-  deleteDevice as deleteDeviceFirestore,
-  setEnergyLimit as setEnergyLimitFirestore,
-  toggleDevice as toggleDeviceFirestore,
-} from '@/lib/firebase/firestore';
+  addDevice as addDeviceRTDB,
+  updateDevice as updateDeviceRTDB,
+  deleteDevice as deleteDeviceRTDB,
+  setEnergyLimit as setEnergyLimitRTDB,
+  toggleDevice as toggleDeviceRTDB,
+} from '@/lib/firebase/rtdb';
 import { Device } from '@/types';
 
 // Global cache for devices
 let cachedDevices: Device[] | null = null;
-let activeDeviceSubscription: Unsubscribe | null = null;
+let activeDeviceSubscription: (() => void) | null = null;
 let subscriberCount = 0;
 
 export function useDevices(userId: string | null) {
@@ -102,7 +100,7 @@ export function useDevices(userId: string | null) {
   const addDevice = useCallback(
     async (deviceId: string, customName: string) => {
       if (!userId) throw new Error('User not authenticated');
-      await addDeviceFirestore(userId, deviceId, customName);
+      await addDeviceRTDB(userId, deviceId, customName);
     },
     [userId]
   );
@@ -110,7 +108,7 @@ export function useDevices(userId: string | null) {
   const updateDevice = useCallback(
     async (deviceId: string, newName: string) => {
       if (!userId) throw new Error('User not authenticated');
-      await updateDeviceFirestore(userId, deviceId, newName);
+      await updateDeviceRTDB(userId, deviceId, newName);
     },
     [userId]
   );
@@ -118,17 +116,17 @@ export function useDevices(userId: string | null) {
   const deleteDevice = useCallback(
     async (deviceId: string) => {
       if (!userId) throw new Error('User not authenticated');
-      await deleteDeviceFirestore(userId, deviceId);
+      await deleteDeviceRTDB(userId, deviceId);
     },
     [userId]
   );
 
   const setEnergyLimit = useCallback(async (deviceId: string, limit: number) => {
-    await setEnergyLimitFirestore(deviceId, limit);
+    await setEnergyLimitRTDB(deviceId, limit);
   }, []);
 
   const toggleDevice = useCallback(async (deviceId: string, newState: boolean) => {
-    await toggleDeviceFirestore(deviceId, newState);
+    await toggleDeviceRTDB(deviceId, newState);
   }, []);
 
   return {

@@ -4,7 +4,7 @@ import {
   signOut,
   User,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { ref, set, get } from 'firebase/database';
 import { auth, db } from './config';
 import { UserProfile } from '@/types';
 
@@ -21,9 +21,9 @@ export async function signUpWithEmail(
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Create Firestore document for user
-    const userDocRef = doc(db, 'user-data', user.uid);
-    await setDoc(userDocRef, {
+    // Create RTDB document for user
+    const userRef = ref(db, `users/${user.uid}`);
+    await set(userRef, {
       email: email,
       username: username,
       devices: {},
@@ -51,15 +51,15 @@ export async function signInWithEmail(
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Fetch user document from Firestore
-    const userDocRef = doc(db, 'user-data', user.uid);
-    const userDoc = await getDoc(userDocRef);
+    // Fetch user document from RTDB
+    const userRef = ref(db, `users/${user.uid}`);
+    const userSnapshot = await get(userRef);
 
-    if (!userDoc.exists()) {
+    if (!userSnapshot.exists()) {
       throw new Error('User profile not found');
     }
 
-    const userData = userDoc.data();
+    const userData = userSnapshot.val();
 
     return {
       userId: user.uid,

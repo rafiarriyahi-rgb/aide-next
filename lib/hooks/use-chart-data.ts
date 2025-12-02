@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Unsubscribe } from 'firebase/firestore';
 import {
   subscribeToDailyReadings,
   subscribeToWeeklyReadings,
   subscribeToYearlyReadings,
-} from '@/lib/firebase/firestore';
+} from '@/lib/firebase/rtdb';
 import { ChartReading, TimeRange } from '@/types';
 import {
   aggregateToHourlyAverages,
@@ -23,7 +22,7 @@ const chartDataCache: {
 const activeSubscriptions: {
   [deviceId: string]: {
     [timeRange: string]: {
-      unsubscribe: Unsubscribe;
+      unsubscribe: () => void;
       count: number;
     };
   };
@@ -72,7 +71,7 @@ export function useChartData(deviceId: string | null, timeRange: TimeRange) {
     }
 
     // Determine which subscription to use based on time range
-    let unsubscribe: Unsubscribe;
+    let unsubscribe: () => void;
 
     const handleUpdate = (readings: ChartReading[]) => {
       let processedReadings = readings;
@@ -156,7 +155,7 @@ export function useAllDevicesChartData(deviceIds: string[]) {
       return;
     }
 
-    const unsubscribes: Unsubscribe[] = [];
+    const unsubscribes: (() => void)[] = [];
     const dataMap: { [deviceId: string]: ChartReading[] } = {};
     let loadedCount = 0;
 
