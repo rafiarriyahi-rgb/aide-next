@@ -30,8 +30,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/home');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to login');
     }
   };
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-slate-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-[#4A90E2] hover:text-[#00E0FF] font-semibold transition-colors">
                 Sign up
               </Link>

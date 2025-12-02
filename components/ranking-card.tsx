@@ -46,25 +46,25 @@ const getRankBadgeClass = (rank: number) => {
 
 export function RankingCard({ title, items, unit = 'kWh' }: RankingCardProps) {
   return (
-    <Card className="bg-white rounded-xl shadow-md p-6 animate-fade-in">
-      <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">{title}</h3>
+    <Card className="bg-white rounded-xl shadow-md p-4 sm:p-6 animate-fade-in">
+      <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 text-center">{title}</h3>
 
       {items.length === 0 ? (
         <div className="flex items-center justify-center h-64 text-slate-400">
           <p>No devices to rank</p>
         </div>
       ) : (
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="space-y-3">
+        <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
+          <div className="space-y-2 sm:space-y-3">
             {items.map((item, index) => {
               const rank = index + 1;
               return (
                 <div
                   key={item.deviceId}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-200"
+                  className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-200"
                 >
                   <div
-                    className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm border-2 ${getRankBadgeClass(
+                    className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full font-bold text-sm border-2 flex-shrink-0 ${getRankBadgeClass(
                       rank
                     )}`}
                   >
@@ -72,7 +72,7 @@ export function RankingCard({ title, items, unit = 'kWh' }: RankingCardProps) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 truncate">
+                    <p className="font-semibold text-sm sm:text-base text-slate-800 truncate">
                       {item.deviceName}
                     </p>
                     <p className="text-xs text-slate-500 truncate">
@@ -80,8 +80,8 @@ export function RankingCard({ title, items, unit = 'kWh' }: RankingCardProps) {
                     </p>
                   </div>
 
-                  <div className="text-right">
-                    <p className="font-bold text-slate-800">
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-800">
                       {item.value.toFixed(2)}
                     </p>
                     <p className="text-xs text-slate-500">{unit}</p>
@@ -117,7 +117,7 @@ export function RankingCarousel({ rankings }: RankingCarouselProps) {
 
   if (rankings.length === 0) {
     return (
-      <Card className="bg-white rounded-xl shadow-md p-12 text-center">
+      <Card className="bg-white rounded-xl shadow-md p-8 sm:p-12 text-center">
         <p className="text-slate-600">No ranking data available</p>
       </Card>
     );
@@ -133,22 +133,24 @@ export function RankingCarousel({ rankings }: RankingCarouselProps) {
 
       {rankings.length > 1 && (
         <>
-          <div className="flex items-center justify-center gap-2 mt-4">
+          <div className="flex items-center justify-center gap-3 mt-4">
             <Button
               variant="outline"
               size="icon"
               onClick={prevRanking}
-              className="h-8 w-8"
+              className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-slate-100 transition-colors"
+              aria-label="Previous ranking"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 px-2">
               {rankings.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`h-2 rounded-full transition-all ${
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${
                     index === currentIndex
                       ? 'w-8 bg-[#4A90E2]'
                       : 'w-2 bg-slate-300 hover:bg-slate-400'
@@ -161,10 +163,18 @@ export function RankingCarousel({ rankings }: RankingCarouselProps) {
               variant="outline"
               size="icon"
               onClick={nextRanking}
-              className="h-8 w-8"
+              className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-slate-100 transition-colors"
+              aria-label="Next ranking"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
+          </div>
+
+          {/* Card Counter */}
+          <div className="text-center mt-3">
+            <p className="text-xs text-slate-500">
+              {currentIndex + 1} of {rankings.length}
+            </p>
           </div>
         </>
       )}

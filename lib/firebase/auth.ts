@@ -35,6 +35,16 @@ export async function signUpWithEmail(
       username: username,
     };
   } catch (error: any) {
+    // Provide more specific error messages
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email format. Please check your email.');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('Password is too weak. Please use at least 6 characters.');
+    } else if (error.code === 'auth/operation-not-allowed') {
+      throw new Error('Email/password accounts are not enabled. Contact support.');
+    }
     throw new Error(error.message || 'Failed to sign up');
   }
 }
@@ -67,6 +77,20 @@ export async function signInWithEmail(
       username: userData.username,
     };
   } catch (error: any) {
+    // Provide more specific error messages
+    if (error.code === 'auth/invalid-credential') {
+      throw new Error('Invalid email or password. Please check your credentials.');
+    } else if (error.code === 'auth/user-not-found') {
+      throw new Error('No account found with this email. Please sign up first.');
+    } else if (error.code === 'auth/wrong-password') {
+      throw new Error('Incorrect password. Please try again.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email format. Please check your email.');
+    } else if (error.code === 'auth/user-disabled') {
+      throw new Error('This account has been disabled. Contact support.');
+    } else if (error.code === 'auth/too-many-requests') {
+      throw new Error('Too many failed login attempts. Please try again later.');
+    }
     throw new Error(error.message || 'Failed to sign in');
   }
 }

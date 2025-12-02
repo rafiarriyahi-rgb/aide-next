@@ -113,7 +113,7 @@ export function SetLimitModal({ open, onOpenChange, device, onSubmit }: SetLimit
                 </div>
               </div>
               <p className="text-xs text-slate-500">
-                You'll be notified when this device exceeds this limit. Enter 0 to remove the limit.
+                You&apos;ll be notified when this device exceeds this limit. Enter 0 to remove the limit.
               </p>
             </div>
 

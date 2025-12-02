@@ -126,23 +126,23 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2 sm:mb-4">
           Welcome back, {userProfile?.username}!
         </h2>
-        <p className="text-slate-600">
+        <p className="text-sm sm:text-base text-slate-600">
           This is your energy monitoring dashboard. View your device statistics and energy consumption here.
         </p>
       </div>
 
       {devices.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <p className="text-slate-600 text-lg mb-2">No devices found</p>
-          <p className="text-slate-500">Add devices in the Analytics page to start monitoring</p>
+        <div className="bg-white rounded-lg shadow-md p-8 sm:p-12 text-center">
+          <p className="text-base sm:text-lg text-slate-600 mb-2">No devices found</p>
+          <p className="text-sm text-slate-500">Add devices in the Analytics page to start monitoring</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Energy Distribution Cards */}
           <div>
             <HomeCardsCarousel cards={energyCards} />
