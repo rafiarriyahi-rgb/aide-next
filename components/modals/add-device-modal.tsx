@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AddDeviceModalProps {
   open: boolean;
@@ -32,6 +34,7 @@ export function AddDeviceModal({ open, onOpenChange, onSubmit }: AddDeviceModalP
 
     if (!deviceId.trim() || !deviceName.trim()) {
       setError('Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
@@ -41,8 +44,10 @@ export function AddDeviceModal({ open, onOpenChange, onSubmit }: AddDeviceModalP
       setDeviceId('');
       setDeviceName('');
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || 'Failed to add device');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to add device');
+      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -119,7 +124,14 @@ export function AddDeviceModal({ open, onOpenChange, onSubmit }: AddDeviceModalP
               className="bg-gradient-submit"
               disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add Device'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Device'
+              )}
             </Button>
           </DialogFooter>
         </form>

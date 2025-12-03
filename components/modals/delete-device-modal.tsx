@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Device } from '@/types';
+import { toast } from 'sonner';
 
 interface DeleteDeviceModalProps {
   open: boolean;
@@ -38,8 +39,10 @@ export function DeleteDeviceModal({
     try {
       await onConfirm(device.id);
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete device');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to delete device');
+      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -118,7 +121,14 @@ export function DeleteDeviceModal({
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? 'Deleting...' : 'Delete Device'}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              'Delete Device'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

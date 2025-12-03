@@ -1,0 +1,185 @@
+/**
+ * Energy Alert Cron Job
+ * Runs every 30 minutes to check device energy consumption and send alerts
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { ref, get } from 'firebase/database';
+import { db } from '@/lib/firebase/config';
+import { sendEnergyAlert } from '@/lib/telegram/telegram';
+import { getAllActiveChatIds } from '@/lib/firebase/telegram-chats';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes max execution time
+
+interface DeviceData {
+  name: string;
+  energyLimit: number;
+  isOn: boolean;
+  user_ids?: Record<string, boolean>;
+}
+
+interface ReadingData {
+  energy: number;
+  timestamp: number;
+  voltage: number;
+  current: number;
+  power: number;
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Verify cron secret for security
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+      console.error('CRON_SECRET not configured');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      console.error('Unauthorized cron request');
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get all active Telegram chat IDs
+    const chatIds = await getAllActiveChatIds();
+
+    if (chatIds.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No active Telegram chats registered',
+        alertsSent: 0,
+      });
+    }
+
+    // Get all devices from Firebase
+    const devicesRef = ref(db, 'devices');
+    const devicesSnapshot = await get(devicesRef);
+
+    if (!devicesSnapshot.exists()) {
+      return NextResponse.json({
+        success: true,
+        message: 'No devices found',
+        alertsSent: 0,
+      });
+    }
+
+    const devices = devicesSnapshot.val();
+    let devicesChecked = 0;
+    let alertsSent = 0;
+    const errors: string[] = [];
+
+    // Process each device
+    for (const [deviceId, deviceData] of Object.entries(devices)) {
+      const device = deviceData as DeviceData;
+      devicesChecked++;
+
+      // Skip devices without energy limit set
+      if (!device.energyLimit || device.energyLimit === 0) {
+        continue;
+      }
+
+      try {
+        // Get latest daily reading for this device
+        const readingsRef = ref(db, `readings_daily/${deviceId}`);
+        const readingsSnapshot = await get(readingsRef);
+
+        if (!readingsSnapshot.exists()) {
+          console.log(`No readings found for device ${deviceId}`);
+          continue;
+        }
+
+        const readings = readingsSnapshot.val();
+
+        // Get the latest reading (sorted by timestamp)
+        const timestamps = Object.keys(readings).sort((a, b) => parseInt(b) - parseInt(a));
+
+        if (timestamps.length === 0) {
+          continue;
+        }
+
+        const latestTimestamp = timestamps[0];
+        const latestReading = readings[latestTimestamp] as ReadingData;
+
+        // Check if energy consumption exceeds limit
+        if (latestReading.energy > device.energyLimit) {
+          console.log(`Device ${device.name} (${deviceId}) exceeded limit: ${latestReading.energy} kWh > ${device.energyLimit} kWh`);
+
+          // Get custom device names from users who own this device
+          let deviceDisplayName = device.name;
+
+          if (device.user_ids) {
+            const userIds = Object.keys(device.user_ids);
+
+            // Try to get custom name from first user
+            if (userIds.length > 0) {
+              const userId = userIds[0];
+              const userRef = ref(db, `users/${userId}`);
+              const userSnapshot = await get(userRef);
+
+              if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                const customName = userData.devices?.[deviceId];
+                if (customName) {
+                  deviceDisplayName = customName;
+                }
+              }
+            }
+          }
+
+          // Broadcast alert to ALL active chat IDs
+          for (const chatId of chatIds) {
+            try {
+              const success = await sendEnergyAlert(
+                chatId,
+                deviceDisplayName,
+                latestReading.energy,
+                device.energyLimit
+              );
+
+              if (success) {
+                alertsSent++;
+              } else {
+                errors.push(`Failed to send alert to chat ${chatId} for device ${device.name}`);
+              }
+            } catch (error) {
+              const errorMsg = `Error sending alert to chat ${chatId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+              errors.push(errorMsg);
+              console.error(errorMsg);
+            }
+          }
+        }
+      } catch (error) {
+        const errorMsg = `Error processing device ${deviceId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        errors.push(errorMsg);
+        console.error(errorMsg);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Energy alert check completed',
+      devicesChecked,
+      alertsSent,
+      activeChatIds: chatIds.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
+    console.error('Error in energy-alerts cron:', error);
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

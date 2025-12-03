@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { AppLogoWithText } from '@/components/icons/custom-logos';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -26,24 +28,32 @@ export default function SignupPage() {
     // Validation
     if (!email || !username || !password || !confirmPassword) {
       setError('Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     try {
+      const loadingToast = toast.loading('Creating your account...');
       await signup(email, password, username);
+      toast.dismiss(loadingToast);
+      toast.success('Account created successfully! Welcome to AIDE!');
       router.push('/home');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign up';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -137,7 +147,14 @@ export default function SignupPage() {
               className="w-full bg-gradient-submit text-white py-6 text-lg font-semibold hover:opacity-90 transition-opacity"
               disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Sign Up'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </Button>
           </form>
 

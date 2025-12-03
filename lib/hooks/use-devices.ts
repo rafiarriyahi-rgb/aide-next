@@ -127,6 +127,14 @@ export function useDevices(userId: string | null) {
 
   const toggleDevice = useCallback(async (deviceId: string, newState: boolean) => {
     await toggleDeviceRTDB(deviceId, newState);
+
+    // Update the cached device immediately
+    if (cachedDevices) {
+      cachedDevices = cachedDevices.map(device =>
+        device.id === deviceId ? { ...device, isOn: newState } : device
+      );
+      setDevices([...cachedDevices]);
+    }
   }, []);
 
   return {

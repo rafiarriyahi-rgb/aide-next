@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -25,7 +25,7 @@ import {
   AlertTriangle,
   Maximize2,
 } from 'lucide-react';
-import { Device, TimeRange, ChartDataPoint } from '@/types';
+import { Device, TimeRange } from '@/types';
 import { useChartData } from '@/lib/hooks/use-chart-data';
 import { transformToChartData, calculateEnergyPerPeriod } from '@/lib/utils/chart-aggregation';
 import { getLatestReading } from '@/lib/utils/energy-calculator';
@@ -66,16 +66,33 @@ export function AnalyticCard({
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
   const [isToggling, setIsToggling] = useState(false);
+  const [optimisticState, setOptimisticState] = useState<boolean | null>(null);
 
   const { data, loading, error, refresh } = useChartData(device.id, timeRange);
 
   const currentGraph = GRAPH_TYPES[currentGraphIndex];
   const latestReading = getLatestReading(data);
 
+  // Use optimistic state if available, otherwise use device state
+  const displayState = optimisticState !== null ? optimisticState : device.isOn;
+
+  // Clear optimistic state when device prop updates to match it
+  useEffect(() => {
+    if (optimisticState !== null && device.isOn === optimisticState) {
+      setOptimisticState(null);
+    }
+  }, [device.isOn, optimisticState]);
+
   const handleToggle = async (checked: boolean) => {
     setIsToggling(true);
+    setOptimisticState(checked); // Optimistic update
     try {
       await onToggle(device.id, checked);
+      // Keep optimistic state - it will sync with Firebase when data arrives
+    } catch (error) {
+      // Revert optimistic update on error
+      setOptimisticState(null);
+      throw error;
     } finally {
       setIsToggling(false);
     }
@@ -94,7 +111,7 @@ export function AnalyticCard({
     ? calculateEnergyPerPeriod(data)
     : transformToChartData(data, timeRange);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string }; value: number }> }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border border-slate-600">
@@ -118,13 +135,13 @@ export function AnalyticCard({
         </div>
         <div className="flex items-center gap-3">
           <Switch
-            checked={device.isOn}
+            checked={displayState}
             onCheckedChange={handleToggle}
             disabled={isToggling}
-            className="data-[state=checked]:bg-gradient-toggle"
+            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-400 shadow-lg"
           />
-          <span className={`text-sm font-medium ${device.isOn ? 'text-green-600' : 'text-red-600'}`}>
-            {device.isOn ? 'ON' : 'OFF'}
+          <span className={`text-sm font-bold ${displayState ? 'text-green-600' : 'text-red-600'}`}>
+            {displayState ? 'ON' : 'OFF'}
           </span>
         </div>
       </div>

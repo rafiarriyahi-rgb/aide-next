@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { AppLogoWithText } from '@/components/icons/custom-logos';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,14 +26,20 @@ export default function LoginPage() {
 
     if (!email || !password) {
       setError('Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
     try {
+      const loadingToast = toast.loading('Signing in...');
       await login(email, password);
+      toast.dismiss(loadingToast);
+      toast.success('Welcome back!');
       router.push('/home');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to login';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -107,7 +115,14 @@ export default function LoginPage() {
               className="w-full bg-gradient-submit text-white py-6 text-lg font-semibold hover:opacity-90 transition-opacity"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
 

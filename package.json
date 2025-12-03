@@ -9,7 +9,10 @@
     "lint": "eslint",
     "generate-json": "npx tsx scripts/generate-rtdb-json.ts",
     "create-test-user": "npx tsx scripts/create-test-user.ts",
-    "telegram-bot": "npx tsx scripts/telegram-bot.ts"
+    "telegram-bot": "npx tsx scripts/telegram-bot.ts",
+    "test:telegram-discovery": "npx tsx scripts/test-telegram-discovery.ts",
+    "test:energy-alerts": "npx tsx scripts/test-energy-alerts.ts",
+    "test:send-alert": "npx tsx scripts/test-send-alert.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -31,6 +34,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "recharts": "^3.5.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

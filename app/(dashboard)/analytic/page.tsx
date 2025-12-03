@@ -11,7 +11,7 @@ import { EditDeviceModal } from '@/components/modals/edit-device-modal';
 import { SetLimitModal } from '@/components/modals/set-limit-modal';
 import { DeleteDeviceModal } from '@/components/modals/delete-device-modal';
 import { Device } from '@/types';
-import { Alert } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 export default function AnalyticPage() {
   const { userProfile } = useUser();
@@ -31,15 +31,12 @@ export default function AnalyticPage() {
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [actionError, setActionError] = useState('');
-  const [actionSuccess, setActionSuccess] = useState('');
 
   const handleAddDevice = async (deviceId: string, deviceName: string) => {
     try {
       await addDevice(deviceId, deviceName);
-      setActionSuccess(`Device "${deviceName}" added successfully!`);
-      setTimeout(() => setActionSuccess(''), 3000);
-    } catch (err: any) {
+      toast.success(`Device "${deviceName}" added successfully!`);
+    } catch (err) {
       throw err;
     }
   };
@@ -52,9 +49,8 @@ export default function AnalyticPage() {
   const handleUpdateDevice = async (deviceId: string, newName: string) => {
     try {
       await updateDevice(deviceId, newName);
-      setActionSuccess(`Device renamed to "${newName}"!`);
-      setTimeout(() => setActionSuccess(''), 3000);
-    } catch (err: any) {
+      toast.success(`Device renamed to "${newName}"!`);
+    } catch (err) {
       throw err;
     }
   };
@@ -67,13 +63,12 @@ export default function AnalyticPage() {
   const handleSetLimitSubmit = async (deviceId: string, limit: number) => {
     try {
       await setEnergyLimit(deviceId, limit);
-      setActionSuccess(
+      toast.success(
         limit > 0
           ? `Energy limit set to ${limit} kWh!`
           : 'Energy limit removed!'
       );
-      setTimeout(() => setActionSuccess(''), 3000);
-    } catch (err: any) {
+    } catch (err) {
       throw err;
     }
   };
@@ -86,9 +81,8 @@ export default function AnalyticPage() {
   const handleDeleteConfirm = async (deviceId: string) => {
     try {
       await deleteDevice(deviceId);
-      setActionSuccess('Device deleted successfully!');
-      setTimeout(() => setActionSuccess(''), 3000);
-    } catch (err: any) {
+      toast.success('Device deleted successfully!');
+    } catch (err) {
       throw err;
     }
   };
@@ -96,11 +90,12 @@ export default function AnalyticPage() {
   const handleToggleDevice = async (deviceId: string, newState: boolean) => {
     try {
       await toggleDevice(deviceId, newState);
-      setActionSuccess(`Device turned ${newState ? 'on' : 'off'}!`);
-      setTimeout(() => setActionSuccess(''), 3000);
-    } catch (err: any) {
-      setActionError(err.message || 'Failed to toggle device');
-      setTimeout(() => setActionError(''), 3000);
+      toast.success(`Device turned ${newState ? 'on' : 'off'}!`, {
+        icon: newState ? '🟢' : '🔴',
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to toggle device');
+      toast.error(error.message);
       throw err;
     }
   };
@@ -134,18 +129,6 @@ export default function AnalyticPage() {
             Add Device
           </Button>
         </div>
-
-        {actionSuccess && (
-          <Alert className="bg-green-50 text-green-800 border-green-200">
-            {actionSuccess}
-          </Alert>
-        )}
-
-        {actionError && (
-          <Alert className="bg-red-50 text-red-800 border-red-200">
-            {actionError}
-          </Alert>
-        )}
 
         {devices.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">

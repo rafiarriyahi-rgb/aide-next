@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { Device } from '@/types';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface EditDeviceModalProps {
   open: boolean;
@@ -39,6 +41,7 @@ export function EditDeviceModal({ open, onOpenChange, device, onSubmit }: EditDe
 
     if (!deviceName.trim()) {
       setError('Please enter a device name');
+      toast.error('Please enter a device name');
       return;
     }
 
@@ -48,8 +51,10 @@ export function EditDeviceModal({ open, onOpenChange, device, onSubmit }: EditDe
     try {
       await onSubmit(device.id, deviceName.trim());
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update device');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to update device');
+      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -118,7 +123,14 @@ export function EditDeviceModal({ open, onOpenChange, device, onSubmit }: EditDe
               className="bg-gradient-submit"
               disabled={loading}
             >
-              {loading ? 'Updating...' : 'Update Device'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Device'
+              )}
             </Button>
           </DialogFooter>
         </form>

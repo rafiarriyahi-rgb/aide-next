@@ -57,3 +57,21 @@ export type TimeRange = '24h' | '7d' | '1m' | '1y';
 
 // Graph types for charts
 export type GraphType = 'power' | 'voltage' | 'frequency' | 'current' | 'powerFactor' | 'energy';
+
+// Telegram Models
+export interface TelegramChat {
+  chatId: number;
+  username?: string;
+  firstName?: string;
+  lastActive: number;
+  addedAt: number;
+}
+
+export interface EnergyAlertData {
+  deviceId: string;
+  deviceName: string;
+  currentEnergy: number;
+  limit: number;
+  timestamp: number;
+  owners: string[];  // List of usernames/names
+}

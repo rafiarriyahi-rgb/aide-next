@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { Device } from '@/types';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SetLimitModalProps {
   open: boolean;
@@ -41,6 +43,7 @@ export function SetLimitModal({ open, onOpenChange, device, onSubmit }: SetLimit
 
     if (isNaN(limitValue) || limitValue < 0) {
       setError('Please enter a valid positive number');
+      toast.error('Please enter a valid positive number');
       return;
     }
 
@@ -50,8 +53,10 @@ export function SetLimitModal({ open, onOpenChange, device, onSubmit }: SetLimit
     try {
       await onSubmit(device.id, limitValue);
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || 'Failed to set energy limit');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to set energy limit');
+      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -140,7 +145,14 @@ export function SetLimitModal({ open, onOpenChange, device, onSubmit }: SetLimit
               className="bg-gradient-submit"
               disabled={loading}
             >
-              {loading ? 'Setting...' : 'Set Limit'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Setting...
+                </>
+              ) : (
+                'Set Limit'
+              )}
             </Button>
           </DialogFooter>
         </form>
