@@ -12,6 +12,7 @@ import { SetLimitModal } from '@/components/modals/set-limit-modal';
 import { DeleteDeviceModal } from '@/components/modals/delete-device-modal';
 import { Device } from '@/types';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 export default function AnalyticPage() {
   const { userProfile } = useUser();
@@ -103,7 +104,16 @@ export default function AnalyticPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4A90E2]" />
+        <div className="relative flex flex-col items-center gap-3">
+          <Image
+            src="/Group 4.svg"
+            alt="AIDE Logo"
+            width={48}
+            height={48}
+            className="opacity-70"
+          />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#00E0FF]" />
+        </div>
       </div>
     );
   }

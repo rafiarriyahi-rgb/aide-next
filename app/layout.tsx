@@ -17,6 +17,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AIDE - AI-Driven Energy Monitor",
   description: "Real-time IoT energy monitoring dashboard for tracking electrical device consumption",
+  openGraph: {
+    title: "AIDE - AI-Driven Energy Monitor",
+    description: "Real-time IoT energy monitoring dashboard for tracking electrical device consumption",
+    images: ['/Frame 1.svg'],
+    siteName: "AIDE",
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "AIDE - AI-Driven Energy Monitor",
+    description: "Real-time IoT energy monitoring dashboard for tracking electrical device consumption",
+    images: ['/Frame 1.svg'],
+  },
 };
 
 export default function RootLayout({

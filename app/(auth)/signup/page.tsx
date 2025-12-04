@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
-import { AppLogoWithText } from '@/components/icons/custom-logos';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -63,7 +63,13 @@ export default function SignupPage() {
         <div className="bg-white rounded-2xl shadow-2xl p-8 animate-fade-in">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <AppLogoWithText size={200} />
+            <Image
+              src="/Frame 1.svg"
+              alt="Little AIDE Logo"
+              width={200}
+              height={56}
+              priority
+            />
           </div>
 
           {/* Header */}
@@ -170,8 +176,17 @@ export default function SignupPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-slate-400 text-sm">
-          <p>&copy; 2024 AIDE. All rights reserved.</p>
+        <div className="mt-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Image
+              src="/Group 4.svg"
+              alt="AIDE Icon"
+              width={24}
+              height={24}
+              className="opacity-60"
+            />
+            <p className="text-slate-400 text-sm">&copy; 2024 AIDE. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </div>

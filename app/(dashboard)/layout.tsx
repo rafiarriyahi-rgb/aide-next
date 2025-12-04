@@ -20,8 +20,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { AppLogoWithText } from '@/components/icons/custom-logos';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 const menuItems = [
   {
@@ -63,8 +63,17 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#4A90E2]" />
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-white">
+        <div className="relative flex flex-col items-center gap-4">
+          <Image
+            src="/Group 4.svg"
+            alt="AIDE Logo"
+            width={60}
+            height={60}
+            className="opacity-80"
+          />
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-t-2 border-[#00E0FF]" />
+        </div>
       </div>
     );
   }
@@ -79,7 +88,13 @@ export default function DashboardLayout({
         <Sidebar className="border-r border-slate-200 bg-white">
           <SidebarHeader className="border-b border-slate-200 p-6 bg-gradient-to-r from-slate-50 to-white">
             <div className="flex items-center justify-center">
-              <AppLogoWithText size={140} />
+              <Image
+                src="/Frame 1.svg"
+                alt="Little AIDE Logo"
+                width={140}
+                height={39}
+                priority
+              />
             </div>
           </SidebarHeader>
 
