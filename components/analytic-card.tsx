@@ -30,7 +30,6 @@ import { Device, TimeRange } from '@/types';
 import { useChartData } from '@/lib/hooks/use-chart-data';
 import {
   transformToChartData,
-  aggregateEnergyByHour,
   aggregateEnergyByRollingHour,
   aggregateEnergyByDay,
   aggregateEnergyByDayMonthly,

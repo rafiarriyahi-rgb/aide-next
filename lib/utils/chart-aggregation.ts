@@ -201,6 +201,38 @@ export function calculateEnergyPerPeriod(readings: ChartReading[]): ChartDataPoi
   return result;
 }
 
+/**
+ * Calculate overall average consumption from readings
+ * Used to fill missing time periods
+ */
+function calculateOverallAverageConsumption(readings: ChartReading[]): number {
+  if (readings.length === 0) return 0;
+
+  // Group by time periods and calculate average consumption per period
+  const dailyGroups: { [key: string]: ChartReading[] } = {};
+
+  readings.forEach((reading) => {
+    const date = parseTimestampFromDocId(reading.id);
+    const dayKey = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    if (!dailyGroups[dayKey]) {
+      dailyGroups[dayKey] = [];
+    }
+    dailyGroups[dayKey].push(reading);
+  });
+
+  // Calculate consumption for each day
+  const consumptions: number[] = [];
+  Object.values(dailyGroups).forEach(group => {
+    if (group.length > 0) {
+      const sorted = group.sort((a, b) => a.id.localeCompare(b.id));
+      const consumption = sorted[sorted.length - 1].energy - sorted[0].energy;
+      if (consumption > 0) consumptions.push(consumption);
+    }
+  });
+
+  if (consumptions.length === 0) return 0;
+  return consumptions.reduce((sum, c) => sum + c, 0) / consumptions.length;
+}
 
 /**
  * Aggregate energy readings into exactly 24 hourly consumption totals
