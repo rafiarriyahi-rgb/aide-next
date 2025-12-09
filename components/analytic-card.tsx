@@ -24,6 +24,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Maximize2,
+  FileText,
 } from 'lucide-react';
 import { Device, TimeRange } from '@/types';
 import { useChartData } from '@/lib/hooks/use-chart-data';
@@ -43,6 +44,7 @@ interface AnalyticCardProps {
   onDelete: (device: Device) => void;
   onSetLimit: (device: Device) => void;
   onExpand?: (device: Device) => void;
+  onViewLogs?: (device: Device) => void;
 }
 
 const GRAPH_TYPES = [
@@ -68,6 +70,7 @@ export function AnalyticCard({
   onDelete,
   onSetLimit,
   onExpand,
+  onViewLogs,
 }: AnalyticCardProps) {
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
@@ -322,6 +325,12 @@ export function AnalyticCard({
           <AlertTriangle className="h-4 w-4 mr-2" />
           Set Limit
         </Button>
+        {onViewLogs && (
+          <Button variant="outline" size="sm" onClick={() => onViewLogs(device)} className="flex-1 min-w-[100px]">
+            <FileText className="h-4 w-4 mr-2" />
+            View Logs
+          </Button>
+        )}
         {onExpand && (
           <Button variant="outline" size="sm" onClick={() => onExpand(device)} className="flex-1 min-w-[100px]">
             <Maximize2 className="h-4 w-4 mr-2" />

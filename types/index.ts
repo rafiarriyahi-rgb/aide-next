@@ -75,3 +75,27 @@ export interface EnergyAlertData {
   timestamp: number;
   owners: string[];  // List of usernames/names
 }
+
+// Log Models
+export interface LogEntry {
+  id: string;              // Document ID (timestamp-based: 20251209T122423)
+  title: string;           // e.g., "Event: Reboot (Exception/Panic)"
+  content: string;         // Detailed log message
+  timestamp: Date;         // Parsed from ID
+  deviceId: string;        // Parent device ID
+}
+
+export interface LogsFilterOptions {
+  startDate?: Date;
+  endDate?: Date;
+  searchQuery?: string;
+}
+
+export interface DeviceMetadata {
+  id: string;
+  name: string;
+  isOn: boolean;
+  energyLimit: number;
+  last_updated?: any;
+  user_ids?: string[];
+}

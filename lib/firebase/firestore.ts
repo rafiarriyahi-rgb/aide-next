@@ -1,6 +1,7 @@
 import {
   doc,
   getDoc,
+  getDocs,
   updateDoc,
   deleteField,
   collection,
@@ -10,7 +11,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { firestore } from './config';
-import { ChartReading } from '@/types';
+import { ChartReading, LogEntry } from '@/types';
 
 /**
  * Subscribe to user devices in real-time
@@ -242,4 +243,140 @@ export async function toggleDevice(
     const message = error instanceof Error ? error.message : 'Failed to toggle device';
     throw new Error(message);
   }
+}
+
+/**
+ * Parse timestamp from log document ID
+ * @param logId - Document ID in format: 20251209T122423
+ */
+function parseLogTimestamp(logId: string): Date {
+  // Format: YYYYMMDDTHHmmss
+  const year = parseInt(logId.substring(0, 4));
+  const month = parseInt(logId.substring(4, 6)) - 1; // JS months are 0-indexed
+  const day = parseInt(logId.substring(6, 8));
+  const hour = parseInt(logId.substring(9, 11));
+  const minute = parseInt(logId.substring(11, 13));
+  const second = parseInt(logId.substring(13, 15));
+
+  return new Date(year, month, day, hour, minute, second);
+}
+
+/**
+ * Subscribe to logs for a device in real-time
+ * @param itemId - Device ID
+ * @param options - Filter options for date range
+ * @param maxResults - Maximum number of logs to fetch (default: 100)
+ * @param onUpdate - Callback with log entries
+ * @param onError - Error callback
+ */
+export function subscribeToDeviceLogs(
+  itemId: string,
+  options: { startDate?: Date; endDate?: Date } = {},
+  maxResults: number = 100,
+  onUpdate: (logs: LogEntry[]) => void,
+  onError: (error: Error) => void
+): Unsubscribe {
+  const logsRef = collection(firestore, `item-data/${itemId}/logs`);
+
+  return onSnapshot(
+    logsRef,
+    (snapshot) => {
+      const logs: LogEntry[] = [];
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const timestamp = parseLogTimestamp(doc.id);
+
+        // Apply date filtering
+        if (options.startDate && timestamp < options.startDate) return;
+        if (options.endDate && timestamp > options.endDate) return;
+
+        logs.push({
+          id: doc.id,
+          title: data.title || '',
+          content: data.content || '',
+          timestamp,
+          deviceId: itemId,
+        });
+      });
+
+      // Sort by timestamp descending (newest first)
+      logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      // Limit results
+      const limitedLogs = logs.slice(0, maxResults);
+
+      onUpdate(limitedLogs);
+    },
+    (error) => {
+      onError(new Error(error.message || 'Failed to fetch device logs'));
+    }
+  );
+}
+
+/**
+ * Get a specific log entry
+ */
+export async function getLogEntry(itemId: string, logId: string): Promise<LogEntry | null> {
+  const logRef = doc(firestore, `item-data/${itemId}/logs/${logId}`);
+  const snapshot = await getDoc(logRef);
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  const data = snapshot.data();
+  return {
+    id: snapshot.id,
+    title: data.title || '',
+    content: data.content || '',
+    timestamp: parseLogTimestamp(snapshot.id),
+    deviceId: itemId,
+  };
+}
+
+/**
+ * Get logs surrounding a specific log entry (for context timeline)
+ * @param itemId - Device ID
+ * @param logId - Target log ID
+ * @param contextCount - Number of logs before and after (default: 5)
+ */
+export async function getLogContext(
+  itemId: string,
+  logId: string,
+  contextCount: number = 5
+): Promise<{ before: LogEntry[]; target: LogEntry | null; after: LogEntry[] }> {
+  const logsRef = collection(firestore, `item-data/${itemId}/logs`);
+
+  // Get target log
+  const target = await getLogEntry(itemId, logId);
+  if (!target) {
+    return { before: [], target: null, after: [] };
+  }
+
+  // Get all logs and filter manually (Firestore doesn't support reverse ordering well)
+  const allLogsSnapshot = await getDocs(logsRef);
+  const allLogs: LogEntry[] = [];
+
+  allLogsSnapshot.docs.forEach((doc) => {
+    const data = doc.data();
+    allLogs.push({
+      id: doc.id,
+      title: data.title || '',
+      content: data.content || '',
+      timestamp: parseLogTimestamp(doc.id),
+      deviceId: itemId,
+    });
+  });
+
+  // Sort chronologically
+  allLogs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+  // Find target index
+  const targetIndex = allLogs.findIndex(log => log.id === logId);
+
+  const before = allLogs.slice(Math.max(0, targetIndex - contextCount), targetIndex);
+  const after = allLogs.slice(targetIndex + 1, targetIndex + 1 + contextCount);
+
+  return { before, target, after };
 }

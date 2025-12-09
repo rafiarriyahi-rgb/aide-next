@@ -10,6 +10,7 @@ import { AddDeviceModal } from '@/components/modals/add-device-modal';
 import { EditDeviceModal } from '@/components/modals/edit-device-modal';
 import { SetLimitModal } from '@/components/modals/set-limit-modal';
 import { DeleteDeviceModal } from '@/components/modals/delete-device-modal';
+import { ViewLogsModal } from '@/components/modals/view-logs-modal';
 import { Device } from '@/types';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -31,6 +32,7 @@ export default function AnalyticPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [logsModalOpen, setLogsModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
   // Sync selectedDevice with updated device data from Firebase
@@ -102,6 +104,11 @@ export default function AnalyticPage() {
     } catch (err) {
       throw err;
     }
+  };
+
+  const handleViewLogs = (device: Device) => {
+    setSelectedDevice(device);
+    setLogsModalOpen(true);
   };
 
   const handleToggleDevice = async (deviceId: string, newState: boolean) => {
@@ -180,6 +187,7 @@ export default function AnalyticPage() {
                 onEdit={handleEditDevice}
                 onDelete={handleDeleteDevice}
                 onSetLimit={handleSetLimit}
+                onViewLogs={handleViewLogs}
               />
             ))}
           </div>
@@ -212,6 +220,12 @@ export default function AnalyticPage() {
         onOpenChange={setDeleteModalOpen}
         device={selectedDevice}
         onConfirm={handleDeleteConfirm}
+      />
+
+      <ViewLogsModal
+        open={logsModalOpen}
+        onOpenChange={setLogsModalOpen}
+        device={selectedDevice}
       />
     </>
   );
